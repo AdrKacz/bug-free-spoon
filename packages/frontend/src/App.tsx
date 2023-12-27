@@ -1,84 +1,68 @@
-import '@chatui/core/es/styles/index.less';
-import Chat, { Bubble, useMessages } from '@chatui/core';
-import '@chatui/core/dist/index.css';
-import { useEffect } from 'react';
+import Chat from './Chat/Chat'
+import SignIn from './SignIn/SignIn'
 
-const group = '123'; // Only one group for now
-const user = (Math.floor(Math.random() * 1e9)).toString(10).padStart(9, '0');
+import { useEffect, useState } from 'react';
 
-export default function App() {
-  const { messages, appendMsg } = useMessages([]);
+export interface User extends UserWithoutSession {
+  session: string
+}
+
+interface UserWithoutSession {
+  userID: string
+}
+
+export default function _() {
+  const [user, setUser] = useState<User | null>(null);
+
+  const getUserInfo = async (session: string): Promise<UserWithoutSession | undefined> => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/session`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session}`,
+          },
+        }
+      );
+      return response.json();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const signOut = async () => {
+    localStorage.removeItem("session");
+    setUser(null);
+  };
+  
+  useEffect(() => {
+    const getSession = async () => {
+      const token = localStorage.getItem("session");
+      if (typeof token === "string") {
+        const user = await getUserInfo(token);
+        if (typeof user !== 'undefined') {
+          setUser({...user, session: token});
+        }
+      }
+    };
+
+    getSession();
+  }, []);
 
   useEffect(() => {
-    const getPreviousMessages = async () => {
-      // Get latest timestamp
-      const latestMessage = messages[messages.length - 1];
-      let from = '1970-01-01T00:00:00.000Z';
-      if (latestMessage && typeof latestMessage.createdAt === 'number') {
-        const fromDate = new Date(latestMessage.createdAt)
-        fromDate.setUTCMilliseconds(fromDate.getUTCMilliseconds() + 1);
-        from = fromDate.toISOString();
-      }
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL!}/messages/${group}/${from}`);
-      if (!response.ok) {
-        console.error(response);
-        return
-      }
-
-      const data = await response.json();
-  
-      data.forEach((msg: any) => {
-        appendMsg({
-          type: 'text',
-          content: { text: msg.text },
-          position: msg.user === user ? 'right' : 'left',
-          createdAt: new Date(msg.createdAt).getTime(),
-        });
-      });
+    const search = window.location.search;
+    const params = new URLSearchParams(search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("session", token);
+      window.location.replace(window.location.origin);
     }
-
-    const interval = setInterval(getPreviousMessages, 500); // Run every 500ms
-  
-    return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
-  }, [messages, appendMsg])
-
-  const handleSend = async (type: any, val: any) => {
-    if (!(type === 'text' && val.trim())) {
-      return
-    }
-    const response = await fetch(`${process.env.REACT_APP_API_URL!}/message/${group}`, {
-      method: "POST",
-      body: JSON.stringify({ text: val, user }),
-    })
-
-    if (!response.ok) {
-      console.error(response);
-      return
-    }
-    // setTyping(true);
-
-    // setTimeout(() => {
-    //   appendMsg({
-    //     type: 'text',
-    //     content: { text: 'Blah Blah' },
-    //   });
-    // }, 1000);
-  }
-
-  const renderMessageContent = (msg: any) => {
-    const { content } = msg;
-    return <Bubble content={content.text} />;
-  }
+  }, []);
 
   return (
-    <Chat
-      locale='fr-FR'
-      navbar={{ title: 'Bug Free Spoon' }}
-      messages={messages}
-      renderMessageContent={renderMessageContent}
-      onSend={handleSend}
-      placeholder='...'
-    />
+       user ? (
+        <Chat signOut={signOut} user={user!}/>
+        ) : <SignIn />
   );
 };

@@ -1,12 +1,24 @@
 import { Table } from "sst/node/table";
 
+import { ApiHandler } from "sst/node/api";
+import { useSession } from "sst/node/auth";
+
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const documentClient = DynamoDBDocumentClient.from(client);
 
-export async function handler(event: any) {
+export const handler = ApiHandler(async (event: any) => {
+    const session = useSession();
+
+    // Check user is authenticated
+    if (session.type !== "user") {
+        throw new Error("Not authenticated");
+    }
+
+    const userID = session.properties.userID;
+
     const group = event.pathParameters.group;
 
     const data = JSON.parse(event.body);
@@ -17,7 +29,7 @@ export async function handler(event: any) {
             PK: `group:${group}`,
             SK: `message:${(new Date()).toISOString()}`,
             text: data.text,
-            user: data.user,
+            user: userID,
         },
     }));
 
@@ -26,4 +38,4 @@ export async function handler(event: any) {
     }
     return { statusCode: 200 };
 
-}
+})
