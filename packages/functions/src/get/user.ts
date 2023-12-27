@@ -13,6 +13,6 @@ export const handler = ApiHandler(async (event: any) => {
 
     return {
         statusCode: 200,
-        body: JSON.stringify({ user: event.pqthParameters.user }),
+        body: JSON.stringify({ user: event.pathParameters.user }),
     };
 })
