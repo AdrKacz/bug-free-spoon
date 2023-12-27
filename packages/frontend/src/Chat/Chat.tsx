@@ -55,7 +55,7 @@ export default function _({ signOut, user }: Props) {
     const interval = setInterval(getPreviousMessages, 500); // Run every 500ms
   
     return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
-  }, [messages, appendMsg, user.userID])
+  }, [messages, appendMsg, user.userID, user.session])
 
   const handleSend = async (type: any, val: any) => {
     if (!(type === 'text' && val.trim())) {
