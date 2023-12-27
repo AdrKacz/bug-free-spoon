@@ -1,12 +1,13 @@
-import { Api, StaticSite, StackContext, Table } from "sst/constructs";
+import { Api, StaticSite, StackContext, Table, WebSocketApi } from "sst/constructs";
 
 export function ExampleStack({ stack }: StackContext) {
   // Create the table
-  const table = new Table(stack, "Counter", {
+  const table = new Table(stack, "Chat", {
     fields: {
-      counter: "string",
+      PK: "string",
+      SK: "string",
     },
-    primaryIndex: { partitionKey: "counter" },
+    primaryIndex: { partitionKey: "PK", sortKey: "SK" },
   });
 
   // Create the HTTP API
@@ -18,7 +19,9 @@ export function ExampleStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "POST /": "packages/functions/src/lambda.handler",
+      "GET /messages/{group}/{from}": "packages/functions/src/get/messages.handler",
+      "GET /user/{user}": "packages/functions/src/get/user.handler",
+      "POST /message/{group}": "packages/functions/src/post/message.handler",
     },
   });
 
@@ -35,6 +38,6 @@ export function ExampleStack({ stack }: StackContext) {
   // Show the URLs in the output
   stack.addOutputs({
     SiteUrl: site.url,
-    ApiEndpoint: api.url,
+    ApiEndpoint: api.url
   });
 }
