@@ -115,7 +115,7 @@ export default function _({ signOut, user }: Props) {
       </AppShell.Header>
 
       <AppShell.Navbar p="md">
-        <Stack gap={0}>
+        {/* <Stack gap={0}>
             <NavLink
               component="button"
               label="Menu item 1"
@@ -128,7 +128,7 @@ export default function _({ signOut, user }: Props) {
               component="button"
               label="Menu item 3"
             />
-        </Stack>
+        </Stack> */}
         <Stack h="100%" justify="flex-end" gap={0}>
           <NavLink
             c='red'
