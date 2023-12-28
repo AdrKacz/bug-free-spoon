@@ -6,7 +6,11 @@ import { Helmet } from "react-helmet";
 
 import { useEffect } from 'react';
 import { User } from '../App';
-import './Chat.css';
+
+import {
+  Card,
+  Center,
+} from '@mantine/core';
 
 const group = '123'; // Only one group for now
 
@@ -83,21 +87,30 @@ export default function _({ signOut, user }: Props) {
   }
 
   return (
-    <div className='container'>
-        <Helmet>
+    <Center h="100%">
+      <Helmet>
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover"
           />
-        </Helmet>
-        <button onClick={signOut}>Sign out</button>
-        <Chat
-            locale='fr-FR'
-            messages={messages}
-            renderMessageContent={renderMessageContent}
-            onSend={handleSend}
-            placeholder='...'
-        />
-    </div>
+      </Helmet>
+      <Card
+        shadow="md"
+        radius="xs"
+        w="95%"
+        h="90%"
+        p="0"
+      >
+        <Card.Section h="100%" m="0">
+          <Chat
+              locale='fr-FR'
+              messages={messages}
+              renderMessageContent={renderMessageContent}
+              onSend={handleSend}
+              placeholder='...'
+          />
+        </Card.Section>
+      </Card>
+    </Center>
   );
 };
