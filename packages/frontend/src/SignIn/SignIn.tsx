@@ -7,10 +7,12 @@ import {
 } from '@mantine/core';
 import { GoogleButton } from './GoogleButton';
 
+import './SignIn.css';
+
 export default function _(props: PaperProps) {
   return (
     <Center h="100%">
-        <Paper radius="md" p="xl" withBorder {...props}>
+        <Paper shadow="md" radius="md" p="xl" withBorder {...props}>
         <Text size="lg" fw={500}>
             Welcome to Bug Free Spoon
         </Text>
