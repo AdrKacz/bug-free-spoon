@@ -6,7 +6,20 @@ import { Helmet } from "react-helmet";
 
 import { useEffect } from 'react';
 import { User } from '../App';
-import './Chat.css';
+
+import {
+  Text,
+  AppShell,
+  Card,
+  Center,
+  Burger,
+  Group,
+  NavLink,
+  Stack
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+
+import IconLogout from './IconLogout';
 
 const group = '123'; // Only one group for now
 
@@ -16,6 +29,7 @@ interface Props {
 }
 
 export default function _({ signOut, user }: Props) {
+  const [opened, { toggle }] = useDisclosure();
   const { messages, appendMsg } = useMessages([]);
 
   useEffect(() => {
@@ -83,21 +97,71 @@ export default function _({ signOut, user }: Props) {
   }
 
   return (
-    <div className='container'>
-        <Helmet>
+    <AppShell
+      h="100%"
+      header={{ height: 60 }}
+      navbar={{ width: 200, breakpoint: 'sm', collapsed: { mobile: !opened }}}
+    >
+      <Helmet>
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover"
           />
-        </Helmet>
-        <button onClick={signOut}>Sign out</button>
-        <Chat
-            locale='fr-FR'
-            messages={messages}
-            renderMessageContent={renderMessageContent}
-            onSend={handleSend}
-            placeholder='...'
-        />
-    </div>
+      </Helmet>
+      <AppShell.Header>
+        <Group h="100%" px="md">
+          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+          <Text size="lg" fw={500}>Bug Free Spoon</Text>
+       </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">
+        {/* <Stack gap={0}>
+            <NavLink
+              component="button"
+              label="Menu item 1"
+            />
+            <NavLink
+              component="button"
+              label="Menu item 2"
+            />
+            <NavLink
+              component="button"
+              label="Menu item 3"
+            />
+        </Stack> */}
+        <Stack h="100%" justify="flex-end" gap={0}>
+          <NavLink
+            c='red'
+            component="button"
+            onClick={signOut}
+            label="Logout"
+            leftSection={<IconLogout />}
+          />
+        </Stack>
+      </AppShell.Navbar>
+
+      <AppShell.Main h="100%">
+        <Center h="100%">
+          <Card
+            shadow="md"
+            radius="xs"
+            w="95%"
+            h="90%"
+            p="0"
+          >
+            <Card.Section h="100%" m="0">
+              <Chat
+                  locale='fr-FR'
+                  messages={messages}
+                  renderMessageContent={renderMessageContent}
+                  onSend={handleSend}
+                  placeholder='...'
+              />
+            </Card.Section>
+          </Card>
+        </Center>
+      </AppShell.Main>
+    </AppShell>
   );
 };
