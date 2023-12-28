@@ -1,15 +1,29 @@
-export default function _() {
-    return (
-        <div className="container">
-            <h2>Bug Free Spoon</h2>
-            <div>
-                <a
+import {
+  Text,
+  Paper,
+  Group,
+  PaperProps,
+  Center
+} from '@mantine/core';
+import { GoogleButton } from './GoogleButton';
+
+export default function _(props: PaperProps) {
+  return (
+    <Center h="100%">
+        <Paper radius="md" p="xl" withBorder {...props}>
+        <Text size="lg" fw={500}>
+            Welcome to Bug Free Spoon
+        </Text>
+
+        <Group grow mb="md" mt="md">
+            <GoogleButton
+                // @ts-ignore
+                component="a"
                 href={`${process.env.REACT_APP_API_URL}/auth/google/authorize`}
-                rel="noreferrer"
-                >
-                <button>Sign in with Google</button>
-                </a>
-            </div>
-          </div>
-      );
+                radius="xl"
+            >Continue with Google</GoogleButton>
+        </Group>
+        </Paper>
+    </Center>
+  );
 }
