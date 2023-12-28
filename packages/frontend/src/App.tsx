@@ -54,7 +54,7 @@ export default function _() {
     const search = window.location.search;
     const params = new URLSearchParams(search);
     const token = params.get("token");
-    if (token) {
+    if (typeof token === 'string') {
       localStorage.setItem("session", token);
       window.location.replace(window.location.origin);
     }
