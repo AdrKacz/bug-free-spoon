@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { User } from '../App';
 
 import {
+  Text,
   AppShell,
   Card,
   Center,
@@ -110,7 +111,7 @@ export default function _({ signOut, user }: Props) {
       <AppShell.Header>
         <Group h="100%" px="md">
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          Bug Free Spoon
+          <Text size="lg" fw={500}>Bug Free Spoon</Text>
        </Group>
       </AppShell.Header>
 
