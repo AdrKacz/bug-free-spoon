@@ -27,9 +27,12 @@ export function ExampleStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /messages/{group}/{from}": "packages/functions/src/get/messages.handler",
-      "GET /user/{user}": "packages/functions/src/get/user.handler",
       "GET /session": "packages/functions/src/get/session.handler",
+
+      "GET /user/{user}": "packages/functions/src/get/user.handler",
+      "POST /user": "packages/functions/src/post/user.handler",
+
+      "GET /messages/{group}/{from}": "packages/functions/src/get/messages.handler",
       "POST /message/{group}": "packages/functions/src/post/message.handler",
     },
   });

@@ -5,10 +5,12 @@ import { useEffect, useState } from 'react';
 
 export interface User extends UserWithoutSession {
   session: string
+  syncSession: () => Promise<void>
 }
 
 interface UserWithoutSession {
   userID: string
+  languages?: string[]
 }
 
 export default function _() {
@@ -42,7 +44,7 @@ export default function _() {
       if (typeof token === "string") {
         const user = await getUserInfo(token);
         if (typeof user !== 'undefined') {
-          setUser({...user, session: token});
+          setUser({...user, session: token, syncSession: getSession});
         }
       }
     };

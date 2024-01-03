@@ -7,6 +7,8 @@ import { Helmet } from "react-helmet";
 import { useEffect } from 'react';
 import { User } from '../App';
 
+import LanguageModal from './LanguageModal/LanguageModal';
+
 import {
   Text,
   AppShell,
@@ -20,6 +22,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 
 import IconLogout from './IconLogout';
+import IconLanguage from './IconLanguage';
 
 const group = '123'; // Only one group for now
 
@@ -29,9 +32,10 @@ interface Props {
 }
 
 export default function _({ signOut, user }: Props) {
-  const [opened, { toggle }] = useDisclosure();
+  const [openedNavbar, { toggle: toggleNavbar }] = useDisclosure();
   const { messages, appendMsg } = useMessages([]);
-
+  const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
+  
   useEffect(() => {
     const getPreviousMessages = async () => {
       // Get latest timestamp
@@ -100,7 +104,7 @@ export default function _({ signOut, user }: Props) {
     <AppShell
       h="100%"
       header={{ height: 60 }}
-      navbar={{ width: 200, breakpoint: 'sm', collapsed: { mobile: !opened }}}
+      navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !openedNavbar }}}
     >
       <Helmet>
           <meta
@@ -110,26 +114,20 @@ export default function _({ signOut, user }: Props) {
       </Helmet>
       <AppShell.Header>
         <Group h="100%" px="md">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+          <Burger opened={openedNavbar} onClick={toggleNavbar} hiddenFrom="sm" size="sm" />
           <Text size="lg" fw={500}>Bug Free Spoon</Text>
        </Group>
       </AppShell.Header>
 
       <AppShell.Navbar p="md">
-        {/* <Stack gap={0}>
+        <Stack gap={0}>
             <NavLink
-              component="button"
-              label="Menu item 1"
-            />
-            <NavLink
-              component="button"
-              label="Menu item 2"
-            />
-            <NavLink
-              component="button"
-              label="Menu item 3"
-            />
-        </Stack> */}
+            component="button"
+            onClick={openModal}
+            label="Choose languages"
+            leftSection={<IconLanguage />}
+          />
+        </Stack>
         <Stack h="100%" justify="flex-end" gap={0}>
           <NavLink
             c='red'
@@ -142,12 +140,13 @@ export default function _({ signOut, user }: Props) {
       </AppShell.Navbar>
 
       <AppShell.Main h="100%">
+        <LanguageModal user={user} opened={openedModal} onClose={closeModal} />
         <Center h="100%">
           <Card
             shadow="md"
             radius="xs"
-            w="95%"
-            h="90%"
+            w={{ base: '100%', sm: '95%' }}
+            h={{ base: '100%', sm: '90%' }}
             p="0"
           >
             <Card.Section h="100%" m="0">
