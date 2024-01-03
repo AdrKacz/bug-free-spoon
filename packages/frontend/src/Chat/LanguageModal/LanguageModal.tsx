@@ -1,4 +1,4 @@
-import { LoadingOverlay, Modal, Button, Group, Box, MultiSelect } from '@mantine/core';
+import { Alert, LoadingOverlay, Modal, Button, Group, Box, MultiSelect } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -18,6 +18,7 @@ const languages = [
 
 export default function _({ user, opened, onClose }: Props) {
     const [loading, { open: openLoading, close: closeLoading }] = useDisclosure(false);
+    const [error, { open: openError, close: closeError }] = useDisclosure(false);
 
     const form = useForm({
         initialValues: {
@@ -26,9 +27,12 @@ export default function _({ user, opened, onClose }: Props) {
     });
     form.setInitialValues({ languages: user.languages ?? [] });
 
-  const submit = async (languages: string[]) => {
-    openLoading();
-    console.log(languages)
+  const submit = async (languages: string[]): Promise<boolean> => {
+    // return true if error, false if success
+    if (error) {
+        closeError()
+    }
+
     const response = await fetch(`${process.env.REACT_APP_API_URL!}/user`, {
       method: "POST",
       body: JSON.stringify({ languages }),
@@ -39,10 +43,10 @@ export default function _({ user, opened, onClose }: Props) {
 
     if (!response.ok) {
         console.error(response);
-        // TODO: Handle error
+        return true
     }
     await user.syncSession();
-    closeLoading(); 
+    return false
   }
 
     return (
@@ -50,12 +54,23 @@ export default function _({ user, opened, onClose }: Props) {
             form.reset();
             onClose();
         }}>
-           <Box maw={340} mx="auto">
+           <Box maw={400} mx="auto">
                 <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-                <form onSubmit={form.onSubmit((values) => {
+                {error && (  
+                <Alert variant="light" color="red" title="Error" >
+                    We are sorry, but we are currently experiencing some issues with our servers. Please try again later.
+                </Alert>
+                )}
+                <form onSubmit={form.onSubmit(async (values) => {
                     console.log(values)
-                    submit(values.languages)
-                    onClose()
+                    openLoading();
+                    const hasError = await submit(values.languages);
+                    closeLoading();
+                    if (hasError) {
+                        openError()
+                    } else {
+                        onClose()
+                    }
                 })}>
                     <MultiSelect
                         label="What languages do you speak?"
