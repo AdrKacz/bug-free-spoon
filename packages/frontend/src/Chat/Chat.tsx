@@ -35,7 +35,7 @@ export default function _({ signOut, user }: Props) {
   const [openedNavbar, { toggle: toggleNavbar }] = useDisclosure();
   const { messages, appendMsg } = useMessages([]);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
-
+  
   useEffect(() => {
     const getPreviousMessages = async () => {
       // Get latest timestamp
@@ -140,7 +140,7 @@ export default function _({ signOut, user }: Props) {
       </AppShell.Navbar>
 
       <AppShell.Main h="100%">
-        <LanguageModal opened={openedModal} onClose={closeModal} />
+        <LanguageModal user={user} opened={openedModal} onClose={closeModal} />
         <Center h="100%">
           <Card
             shadow="md"

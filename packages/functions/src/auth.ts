@@ -1,4 +1,12 @@
+import { Table } from "sst/node/table";
+
 import { AuthHandler, GoogleAdapter, Session } from "sst/node/auth";
+
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+
+const client = new DynamoDBClient({});
+const documentClient = DynamoDBDocumentClient.from(client);
 
 declare module "sst/node/auth" {
     export interface SessionTypes {
@@ -20,14 +28,21 @@ export const handler = AuthHandler({
                 const claims = tokenset.claims()
                 console.log("Google claims:", claims)
 
-                // Save the user to the database if needed
+                const userID = `google:${claims.sub}`
+
+                // Save the user to the database
+                await documentClient.send(new UpdateCommand({
+                    TableName: Table.Chat.tableName,
+                    Key: {
+                        PK: `user:${userID}`,
+                        SK: "meta",
+                    }
+                }));
 
                 return Session.parameter({
                     redirect: process.env.SITE_URL!,
                     type: "user",
-                    properties: {
-                        userID: `google:${claims.sub}`
-                    },
+                    properties: { userID },
                 })
             },
         }),
