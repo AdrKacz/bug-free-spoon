@@ -32,8 +32,18 @@ export function ExampleStack({ stack }: StackContext) {
       "GET /user/{user}": "packages/functions/src/get/user.handler",
       "POST /user": "packages/functions/src/post/user.handler",
 
-      "GET /messages/{group}/{from}": "packages/functions/src/get/messages.handler",
-      "POST /message/{group}": "packages/functions/src/post/message.handler",
+      "GET /messages/{group}/{from}": {
+        function: {
+          handler: "packages/functions/src/get/messages.handler",
+          permissions: ['translate:TranslateText'],
+        },
+      },
+      "POST /message/{group}": {
+        function: {
+          handler: "packages/functions/src/post/message.handler",
+          permissions: ['comprehend:DetectDominantLanguage'],
+        },
+      }
     },
   });
 

@@ -63,7 +63,9 @@ export default function _({ signOut, user }: Props) {
       data.forEach((msg: any) => {
         appendMsg({
           type: 'text',
-          content: { text: msg.text },
+          // TODO: Add something so user click on "Update my languages"
+          // Display the original message if the message is from the current user
+          content: { text: msg.user === user.userID ? msg.originalText : msg.text },
           position: msg.user === user.userID ? 'right' : 'left',
           createdAt: new Date(msg.createdAt).getTime(),
         });

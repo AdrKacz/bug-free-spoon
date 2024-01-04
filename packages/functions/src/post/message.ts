@@ -3,11 +3,15 @@ import { Table } from "sst/node/table";
 import { ApiHandler } from "sst/node/api";
 import { useSession } from "sst/node/auth";
 
+import { ComprehendClient, DetectDominantLanguageCommand } from "@aws-sdk/client-comprehend";
+
+const comprehendClient = new ComprehendClient({ region: "us-east-1" }); // language detection is not available in eu-west-3
+
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
-const client = new DynamoDBClient({});
-const documentClient = DynamoDBDocumentClient.from(client);
+const dynamodbClient = new DynamoDBClient({});
+const documentClient = DynamoDBDocumentClient.from(dynamodbClient);
 
 export const handler = ApiHandler(async (event: any) => {
     const session = useSession();
@@ -23,6 +27,18 @@ export const handler = ApiHandler(async (event: any) => {
 
     const data = JSON.parse(event.body);
 
+    // Get text original language
+    const languages = await comprehendClient.send(new DetectDominantLanguageCommand({
+        Text: data.text,
+    }));
+
+    // Throw if no language detected
+    if (typeof languages.Languages?.[0]?.LanguageCode !== 'string') {
+        throw new Error("Failed to detect language");
+    }
+
+    const language = languages.Languages[0].LanguageCode;
+
     const response = await documentClient.send(new PutCommand({
         TableName: Table.Chat.tableName,
         Item: {
@@ -30,6 +46,7 @@ export const handler = ApiHandler(async (event: any) => {
             SK: `message:${(new Date()).toISOString()}`,
             text: data.text,
             user: userID,
+            language,
         },
     }));
 
