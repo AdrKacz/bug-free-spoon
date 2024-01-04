@@ -2,6 +2,8 @@ import { Alert, LoadingOverlay, Modal, Button, Group, Box, MultiSelect } from '@
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 
+import { languages } from './languages';
+
 import { User } from '../../App';
 
 interface Props {
@@ -9,12 +11,6 @@ interface Props {
     onClose: () => void
     user: User
 }
-
-const languages = [
-    { value: 'fr', label: 'Français' },
-    { value: 'en', label: 'English' },
-    { value: 'jp', label: '日本語' },
-]
 
 export default function _({ user, opened, onClose }: Props) {
     const [loading, { open: openLoading, close: closeLoading }] = useDisclosure(false);

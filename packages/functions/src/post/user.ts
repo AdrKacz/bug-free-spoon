@@ -27,7 +27,7 @@ export const handler = ApiHandler(async (event: any) => {
             PK: `user:${userID}`,
             SK: "meta",
         },
-        UpdateExpression: "set languages = :languages",
+        UpdateExpression: "SET languages = :languages",
         ExpressionAttributeValues: {
             ":languages": data.languages,
         },
