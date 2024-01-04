@@ -17,7 +17,8 @@ import {
   Burger,
   Group,
   NavLink,
-  Stack
+  Stack,
+  Indicator
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -102,6 +103,8 @@ export default function _({ signOut, user }: Props) {
     return <Bubble content={content.text} />;
   }
 
+  const userHasLanguages = user.languages && user.languages.length > 0;
+
   return (
     <AppShell
       h="100%"
@@ -116,7 +119,9 @@ export default function _({ signOut, user }: Props) {
       </Helmet>
       <AppShell.Header>
         <Group h="100%" px="md">
-          <Burger opened={openedNavbar} onClick={toggleNavbar} hiddenFrom="sm" size="sm" />
+          <Indicator color='red' position="top-start" withBorder processing hiddenFrom="sm" disabled={userHasLanguages || openedNavbar}>
+            <Burger opened={openedNavbar} onClick={toggleNavbar} hiddenFrom="sm" size="sm" />
+          </Indicator>
           <Text size="lg" fw={500}>Bug Free Spoon</Text>
        </Group>
       </AppShell.Header>
@@ -127,7 +132,10 @@ export default function _({ signOut, user }: Props) {
             component="button"
             onClick={openModal}
             label="Choose languages"
-            leftSection={<IconLanguage />}
+            leftSection={
+              <Indicator color='red' position="top-start" withBorder processing disabled={userHasLanguages}>
+                <IconLanguage />
+              </Indicator>}
           />
         </Stack>
         <Stack h="100%" justify="flex-end" gap={0}>

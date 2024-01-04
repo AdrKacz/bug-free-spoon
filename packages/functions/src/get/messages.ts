@@ -31,7 +31,11 @@ export const handler = ApiHandler(async (event: any) => {
         },
     }));
 
-    const languages = user.Item?.languages ?? ["en"];
+    // Default to English if languages is undefined or empty
+    let languages: string[] = ["en"];
+    if (user.Item?.languages && user.Item?.languages.length > 0) {
+        languages = user.Item.languages;
+    }
     const preferredLanguage = languages[0];
 
     // Get messages
@@ -50,7 +54,6 @@ export const handler = ApiHandler(async (event: any) => {
     const messages = []
     for (const item of items) {
         let text;
-        // TODO: Check all those branch works as expected
         if (languages.includes(item.language)) {
             // Check if original message is already in the one of user's languages
             text = item.text;
