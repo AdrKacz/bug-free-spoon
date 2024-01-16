@@ -86,7 +86,7 @@ export default function _({ signOut, user }: Props) {
             p="0"
           >
             <Card.Section h="100%" m="0">
-              <Chat />
+              <Chat user={user}/>
             </Card.Section>
           </Card>
         </Center>
