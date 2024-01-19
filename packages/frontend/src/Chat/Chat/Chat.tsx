@@ -8,7 +8,7 @@ import {
     Avatar,
 } from '@chatscope/chat-ui-kit-react';
 
-import { useListState, useSetState } from '@mantine/hooks';
+import { useListState, useSetState, usePrevious } from '@mantine/hooks';
 
 import { User } from '../../App';
 
@@ -21,19 +21,26 @@ interface Props {
 const group = '123' // Only one group for now
 
 export default function _({user}: Props) {
+    const previousUser = usePrevious(user)
     const [messages, handlers] = useListState<Omit<MessageModel, 'position'>>()
     const [users, setState] = useSetState<Record<string, any>>({})
 
     useEffect(() => {
         const getPreviousMessages = async () => {
             // Get latest timestamp
-            const latestMessage = messages[messages.length - 1];
+            const currentLanguages = (user.languages ?? []).sort().join(',')
+            const previousLanguages = (previousUser?.languages ?? []).sort().join(',')
+            if (previousUser && currentLanguages !== previousLanguages) {
+                handlers.setState([]) // reset if new languages
+            }
             let from = '1970-01-01T00:00:00.000Z';
+            const latestMessage = messages[messages.length - 1];
             if (latestMessage && typeof latestMessage.sentTime === 'string') {
                 const fromDate = new Date(latestMessage.sentTime)
                 fromDate.setUTCMilliseconds(fromDate.getUTCMilliseconds() + 1);
                 from = fromDate.toISOString();
             }
+            
 
             const response = await fetch(`${process.env.REACT_APP_API_URL!}/messages/${group}/${from}`, {
                 method: "GET",
@@ -72,7 +79,7 @@ export default function _({user}: Props) {
         const interval = setInterval(getPreviousMessages, 500); // Run every 500ms
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
-    }, [setState, users, handlers, messages, user.session, user.userID])
+    }, [setState, users, handlers, messages, user, previousUser])
 
     const handleSend = async (text: string) => {
         if (text.match(/(&nbsp;)+ <br>/)) {
