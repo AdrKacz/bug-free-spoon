@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet";
 import { User } from '../App';
 
 import Chat from './Chat/Chat'
-import LanguageModal from './LanguageModal/LanguageModal';
+import ProfileModal from './ProfileModal/ProfileModal';
 
 import {
   Text,
@@ -13,12 +13,12 @@ import {
   Group,
   NavLink,
   Stack,
-  Indicator
+  Avatar
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
 import IconLogout from './IconLogout';
-import IconLanguage from './IconLanguage';
+import IconProfile from './IconProfile';
 
 interface Props {
     signOut: () => Promise<void>;
@@ -27,9 +27,7 @@ interface Props {
 
 export default function _({ signOut, user }: Props) {
   const [openedNavbar, { toggle: toggleNavbar }] = useDisclosure();
-  const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
-  
-  const userHasLanguages = user.languages && user.languages.length > 0;
+  const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(typeof user.languages === 'undefined');
 
   return (
     <AppShell
@@ -44,12 +42,15 @@ export default function _({ signOut, user }: Props) {
           />
       </Helmet>
       <AppShell.Header>
-        <Group h="100%" px="md">
-          <Indicator color='red' position="top-start" withBorder processing hiddenFrom="sm" disabled={userHasLanguages || openedNavbar}>
-            <Burger opened={openedNavbar} onClick={toggleNavbar} hiddenFrom="sm" size="sm" />
-          </Indicator>
+        <Group h="100%" gap={0}>
+        <Group px="md" style={{"flex-grow": "1"}}>
+          <Burger opened={openedNavbar} onClick={toggleNavbar} hiddenFrom="sm" size="sm" />
           <Text size="lg" fw={500}>Bug Free Spoon</Text>
        </Group>
+       <Group px="md" justify="flex-end">
+          <Avatar src={user.picture}/>
+       </Group>
+        </Group>
       </AppShell.Header>
 
       <AppShell.Navbar p="md">
@@ -57,11 +58,8 @@ export default function _({ signOut, user }: Props) {
             <NavLink
             component="button"
             onClick={openModal}
-            label="Choose languages"
-            leftSection={
-              <Indicator color='red' position="top-start" withBorder processing disabled={userHasLanguages}>
-                <IconLanguage />
-              </Indicator>}
+            label="Update profile"
+            leftSection={<IconProfile />}
           />
         </Stack>
         <Stack h="100%" justify="flex-end" gap={0}>
@@ -76,7 +74,7 @@ export default function _({ signOut, user }: Props) {
       </AppShell.Navbar>
 
       <AppShell.Main h="100%">
-        <LanguageModal user={user} opened={openedModal} onClose={closeModal} />
+        <ProfileModal user={user} opened={openedModal} onClose={closeModal} />
         <Center h="100%">
           <Card
             shadow="md"

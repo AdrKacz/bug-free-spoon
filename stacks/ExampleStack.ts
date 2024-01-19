@@ -29,7 +29,6 @@ export function ExampleStack({ stack }: StackContext) {
     routes: {
       "GET /session": "packages/functions/src/get/session.handler",
 
-      "GET /user/{user}": "packages/functions/src/get/user.handler",
       "POST /user": "packages/functions/src/post/user.handler",
 
       "GET /messages/{group}/{from}": {

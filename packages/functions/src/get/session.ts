@@ -34,9 +34,10 @@ export const handler = ApiHandler(async () => {
     return {
         statusCode: 200,
         body: JSON.stringify({
-            userID: response.Item.PK.replace("user:", ""),
+            userID,
             sessionID: userID,
             languages: response.Item.languages,
+            picture: response.Item.picture ?? `https://api.dicebear.com/7.x/personas/svg?seed=${userID}`
         }),
     };
 });
