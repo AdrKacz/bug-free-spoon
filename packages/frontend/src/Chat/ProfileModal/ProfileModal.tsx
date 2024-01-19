@@ -1,6 +1,7 @@
 import { Stack, Avatar, Alert, LoadingOverlay, Modal, Button, Group, Box, MultiSelect, ActionIcon } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure } from '@mantine/hooks';
+import { useMantineTheme } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 
 import { languages } from './languages';
 
@@ -17,6 +18,7 @@ interface Props {
 export default function _({ user, opened, onClose }: Props) {
     const [loading, { open: openLoading, close: closeLoading }] = useDisclosure(false);
     const [error, { open: openError, close: closeError }] = useDisclosure(false);
+    const small = useMediaQuery(`(max-width: ${useMantineTheme().breakpoints.sm})`)
 
     const form = useForm({
         initialValues: {
@@ -57,9 +59,16 @@ export default function _({ user, opened, onClose }: Props) {
   }
 
     return (
-        <Modal opened={opened} onClose={() => {
-            form.reset();
-            onClose();
+        <Modal fullScreen={small} opened={opened} onClose={() => {
+            if ((user.languages ?? []).length > 0) {
+                form.reset();
+                onClose();
+            } else {
+                form.validate()
+                if (form.isValid()) {
+                    form.setFieldError('languages', 'You must submit at least one language')
+                }
+            }
         }}>
            <Box maw={400} mx="auto">
                 <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
