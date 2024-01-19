@@ -1,10 +1,12 @@
-import { Alert, LoadingOverlay, Modal, Button, Group, Box, MultiSelect } from '@mantine/core';
+import { Stack, Avatar, Alert, LoadingOverlay, Modal, Button, Group, Box, MultiSelect, ActionIcon } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 
 import { languages } from './languages';
 
 import { User } from '../../App';
+
+import IconRefresh from './IconRefresh';
 
 interface Props {
     opened: boolean
@@ -18,15 +20,16 @@ export default function _({ user, opened, onClose }: Props) {
 
     const form = useForm({
         initialValues: {
+            picture: user.picture,
             languages: user.languages ?? [],
         },
         validate: {
             languages: (value) => (value.length === 0 ? "You must choose at least one language" : null)
         }
     });
-    form.setInitialValues({ languages: user.languages ?? [] });
+    form.setInitialValues({ picture: user.picture, languages: user.languages ?? [] });
 
-  const submit = async (languages: string[]): Promise<boolean> => {
+  const submit = async ({ picture, languages } : {picture: string, languages: string[]}): Promise<boolean> => {
     // return true if error, false if success
     if (error) {
         closeError()
@@ -34,7 +37,7 @@ export default function _({ user, opened, onClose }: Props) {
 
     const response = await fetch(`${process.env.REACT_APP_API_URL!}/user`, {
       method: "POST",
-      body: JSON.stringify({ languages }),
+      body: JSON.stringify({ picture, languages }),
       headers: {
         Authorization: `Bearer ${user.session}`,
       },
@@ -46,6 +49,11 @@ export default function _({ user, opened, onClose }: Props) {
     }
     await user.syncSession();
     return false
+  }
+
+  const randomAvatar = () => {
+    const seed = `${Math.random().toString(36).slice(2, 11)}-${Math.random().toString(36).slice(2, 11)}`
+    return `https://api.dicebear.com/7.x/personas/svg?seed=${seed}`
   }
 
     return (
@@ -63,7 +71,7 @@ export default function _({ user, opened, onClose }: Props) {
                 <form onSubmit={form.onSubmit(async (values) => {
                     console.log(values)
                     openLoading();
-                    const hasError = await submit(values.languages);
+                    const hasError = await submit(values);
                     closeLoading();
                     if (hasError) {
                         openError()
@@ -71,17 +79,31 @@ export default function _({ user, opened, onClose }: Props) {
                         onClose()
                     }
                 })}>
-                    <MultiSelect
-                        label="What languages do you speak?"
-                        placeholder="Pick languages"
-                        data={languages}
-                        searchable
-                        hidePickedOptions
-                        {...form.getInputProps('languages')}
-                    />
-                    <Group justify="flex-end" mt="md">
-                        <Button type="submit">Submit</Button>
-                    </Group>
+                    <Stack>
+                        <Group>
+                            <Avatar size="xl" src={form.getInputProps('picture').value} />
+                            <ActionIcon
+                                variant="filled"
+                                aria-label="Refresh"
+                                onClick={() => {
+                                    form.setFieldValue('picture', randomAvatar())
+                                }}
+                            >
+                                <IconRefresh />
+                            </ActionIcon>
+                        </Group>  
+                        <MultiSelect
+                            label="What languages do you speak?"
+                            placeholder="Pick languages"
+                            data={languages}
+                            searchable
+                            hidePickedOptions
+                            {...form.getInputProps('languages')}
+                        />
+                        <Group justify="flex-end" mt="md">
+                            <Button type="submit">Submit</Button>
+                        </Group>
+                    </Stack>
                 </form>
             </Box>
         </Modal>

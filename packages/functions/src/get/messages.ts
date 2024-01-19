@@ -105,7 +105,7 @@ export const handler = ApiHandler(async (event: any) => {
             user: {
                 userID: users[item.user].Item?.PK.replace('user:', ''),
                 languages: users[item.user].Item?.languages,
-                picture: users[item.user].Item?.picture ?? `https://api.dicebear.com/7.x/personas/svg?seed=${userID}`
+                picture: users[item.user].Item?.picture ?? `https://api.dicebear.com/7.x/personas/svg?seed=${item.user}`
             },
             createdAt: item.SK.replace("message:", ""),
         });
