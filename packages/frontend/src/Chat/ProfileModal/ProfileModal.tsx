@@ -19,6 +19,9 @@ export default function _({ user, opened, onClose }: Props) {
     const form = useForm({
         initialValues: {
             languages: user.languages ?? [],
+        },
+        validate: {
+            languages: (value) => (value.length === 0 ? "You must choose at least one language" : null)
         }
     });
     form.setInitialValues({ languages: user.languages ?? [] });

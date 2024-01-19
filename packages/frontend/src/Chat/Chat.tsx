@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet";
 import { User } from '../App';
 
 import Chat from './Chat/Chat'
-import LanguageModal from './LanguageModal/LanguageModal';
+import LanguageModal from './ProfileModal/ProfileModal';
 
 import { Avatar } from '@chatscope/chat-ui-kit-react';
 
@@ -20,7 +20,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 
 import IconLogout from './IconLogout';
-import IconLanguage from './IconLanguage';
+import IconProfile from './IconProfile';
 
 interface Props {
     signOut: () => Promise<void>;
@@ -64,10 +64,10 @@ export default function _({ signOut, user }: Props) {
             <NavLink
             component="button"
             onClick={openModal}
-            label="Choose languages"
+            label="Update profile"
             leftSection={
               <Indicator color='red' position="top-start" withBorder processing disabled={userHasLanguages}>
-                <IconLanguage />
+                <IconProfile />
               </Indicator>}
           />
         </Stack>
