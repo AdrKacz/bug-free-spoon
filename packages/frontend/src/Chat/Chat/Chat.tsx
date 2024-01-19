@@ -41,7 +41,6 @@ export default function _({user}: Props) {
                 from = fromDate.toISOString();
             }
             
-
             const response = await fetch(`${process.env.REACT_APP_API_URL!}/messages/${group}/${from}`, {
                 method: "GET",
                 headers: {
@@ -72,8 +71,6 @@ export default function _({user}: Props) {
                     setState({[msg.user.userID]: msg.user})
                 }
             });
-
-            console.log(users)
         }
 
         const interval = setInterval(getPreviousMessages, 500); // Run every 500ms
