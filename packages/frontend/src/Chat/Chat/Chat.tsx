@@ -4,11 +4,11 @@ import {
     MessageList,
     Message,
     MessageInput,
-    // Avatar,
     MessageModel,
+    Avatar,
 } from '@chatscope/chat-ui-kit-react';
 
-import { useListState } from '@mantine/hooks';
+import { useListState, useSetState } from '@mantine/hooks';
 
 import { User } from '../../App';
 
@@ -22,6 +22,7 @@ const group = '123' // Only one group for now
 
 export default function _({user}: Props) {
     const [messages, handlers] = useListState<Omit<MessageModel, 'position'>>()
+    const [users, setState] = useSetState<Record<string, any>>({})
 
     useEffect(() => {
         const getPreviousMessages = async () => {
@@ -47,22 +48,31 @@ export default function _({user}: Props) {
             }
 
             const data = await response.json();
+            console.log(user.userID, data)
 
             data.forEach((msg: any) => {
+                // Add message
                 handlers.append({
                 // Display the original message if the message is from the current user
-                message: msg.user === user.userID ? msg.originalText : msg.text,
-                direction: msg.user === user.userID ? 'outgoing' : 'incoming',
+                message: msg.user.userID === user.userID ? msg.originalText : msg.text,
+                direction: msg.user.userID === user.userID ? 'outgoing' : 'incoming',
                 sentTime: msg.createdAt,
-                sender: msg.user
+                sender: msg.user.userID
                 });
+
+                // Update user if needed
+                if (typeof users[msg.user] === 'undefined') {
+                    setState({[msg.user.userID]: msg.user})
+                }
             });
+
+            console.log(users)
         }
 
         const interval = setInterval(getPreviousMessages, 500); // Run every 500ms
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
-    }, [handlers, messages, user.session, user.userID])
+    }, [setState, users, handlers, messages, user.session, user.userID])
 
     const handleSend = async (text: string) => {
         if (text.match(/(&nbsp;)+ <br>/)) {
@@ -121,11 +131,24 @@ export default function _({user}: Props) {
     return (
         <ChatContainer>
             <MessageList>
-                {models.map((model) => (
-                    <Message key={new Date(model.sentTime!).getTime()} model={model} />
-                ))}
+                {models.map((model) => {
+                    if (model.direction === 'incoming') {
+                        if (model.position === 'last' || model.position === 'single') {
+                            return (
+                                <Message key={new Date(model.sentTime!).getTime()} model={model}>
+                                    <Avatar src={users[model.sender!].picture} />
+                                </Message>
+                            )
+                        } else {
+                            return <Message key={new Date(model.sentTime!).getTime()} model={model} avatarSpacer />
+                        }  
+                    } else {
+                        return <Message key={new Date(model.sentTime!).getTime()} model={model} />
+                    }               
+                })}
             </MessageList>
             <MessageInput
+                attachButton={false}
                 placeholder='Aa'
                 onSend={handleSend}
             />

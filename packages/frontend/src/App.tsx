@@ -11,6 +11,7 @@ export interface User extends UserWithoutSession {
 interface UserWithoutSession {
   userID: string
   languages?: string[]
+  picture: string
 }
 
 export default function _() {

@@ -4,6 +4,8 @@ import { User } from '../App';
 import Chat from './Chat/Chat'
 import LanguageModal from './LanguageModal/LanguageModal';
 
+import { Avatar } from '@chatscope/chat-ui-kit-react';
+
 import {
   Text,
   AppShell,
@@ -44,12 +46,17 @@ export default function _({ signOut, user }: Props) {
           />
       </Helmet>
       <AppShell.Header>
-        <Group h="100%" px="md">
+        <Group h="100%" gap={0}>
+        <Group px="md" style={{"flex-grow": "1"}}>
           <Indicator color='red' position="top-start" withBorder processing hiddenFrom="sm" disabled={userHasLanguages || openedNavbar}>
             <Burger opened={openedNavbar} onClick={toggleNavbar} hiddenFrom="sm" size="sm" />
           </Indicator>
           <Text size="lg" fw={500}>Bug Free Spoon</Text>
        </Group>
+       <Group px="md" justify="flex-end">
+          <Avatar src={user.picture}/>
+       </Group>
+        </Group>
       </AppShell.Header>
 
       <AppShell.Navbar p="md">

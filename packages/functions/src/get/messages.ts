@@ -7,7 +7,7 @@ import { TranslateClient, TranslateTextCommand } from "@aws-sdk/client-translate
 const translateClient = new TranslateClient({});
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, QueryCommandInput, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommandOutput, GetCommand, QueryCommand, QueryCommandInput, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 const dynamoDBClient = new DynamoDBClient({});
 const documentClient = DynamoDBDocumentClient.from(dynamoDBClient);
@@ -52,6 +52,7 @@ export const handler = ApiHandler(async (event: any) => {
 
     // Process messages
     const messages = []
+    const users: Record<string, GetCommandOutput> = {userID: user}
     for (const item of items) {
         let text;
         if (languages.includes(item.language)) {
@@ -88,10 +89,24 @@ export const handler = ApiHandler(async (event: any) => {
             text = response.TranslatedText
         }
 
+        if (typeof users[item.user] === 'undefined') {
+            users[item.user] = await documentClient.send(new GetCommand({
+                TableName: Table.Chat.tableName,
+                Key: {
+                    PK: `user:${item.user}`,
+                    SK: "meta",
+                },
+            }));
+        }
+
         messages.push({
             originalText: item.text,
             text,
-            user: item.user,
+            user: {
+                userID: users[item.user].Item?.PK.replace('user:', ''),
+                languages: users[item.user].Item?.languages,
+                picture: users[item.user].Item?.picture ?? `https://api.dicebear.com/7.x/personas/svg?seed=${userID}`
+            },
             createdAt: item.SK.replace("message:", ""),
         });
     }
