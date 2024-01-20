@@ -6,9 +6,10 @@ import {
     MessageInput,
     MessageModel,
     Avatar,
+    TypingIndicator
 } from '@chatscope/chat-ui-kit-react';
 
-import { useListState, useSetState, usePrevious } from '@mantine/hooks';
+import { useListState, useSetState, usePrevious, useInputState, useDisclosure } from '@mantine/hooks';
 
 import { User } from '../../App';
 
@@ -21,6 +22,9 @@ interface Props {
 const group = '123' // Only one group for now
 
 export default function _({user}: Props) {
+    const [message, setMessage] = useInputState('');
+    const [isTyping, {open: isTypingOpen, close: isTypingClose}] = useDisclosure(false)
+
     const previousUser = usePrevious(user)
     const [messages, handlers] = useListState<Omit<MessageModel, 'position'>>()
     const [users, setState] = useSetState<Record<string, any>>({})
@@ -53,10 +57,9 @@ export default function _({user}: Props) {
                 return
             }
 
-            const data: any[] = await response.json();
-            console.log(user.userID, data)
-
-            data.forEach((msg: any) => {
+            const data: {messages: any[], isTyping: boolean} = await response.json();
+            console.log('Data', data)
+            data.messages.forEach((msg: any) => {
                 // Add message
                 handlers.append({
                 // Display the original message if the message is from the current user
@@ -71,14 +74,43 @@ export default function _({user}: Props) {
                     setState({[msg.user.userID]: msg.user})
                 }
             });
+
+            if (data.isTyping) {
+                isTypingOpen()
+            } else {
+                isTypingClose()
+            }
         }
 
-        const interval = setInterval(getPreviousMessages, 500); // Run every 500ms
+        const setTypingIndicator = async () => {
+            const msg = message.replaceAll('<br>', '').replaceAll('&nbsp;', ' ')
+            console.log('Typing', msg.length > 0)
+            const response = await fetch(`${process.env.REACT_APP_API_URL!}/user/typing`, {
+                method: "POST",
+                body: JSON.stringify({ group, isTyping: msg.length > 0 }),
+                headers: {
+                  Authorization: `Bearer ${user.session}`,
+                },
+              })
+          
+              if (!response.ok) {
+                console.error(response);
+                return
+              }
+        }
 
-        return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
-    }, [setState, users, handlers, messages, user, previousUser])
+        const intervals = [
+            setInterval(getPreviousMessages, 500), // Run every 500ms
+            setInterval(setTypingIndicator, 500), // Run every 500ms
+        ]
+
+        return () => {
+            intervals.forEach(clearInterval)
+         } // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
+    }, [setState, users, handlers, messages, user, previousUser, message, isTypingOpen, isTypingClose])
 
     const handleSend = async (text: string) => {
+        setMessage('')
         if (text.match(/(&nbsp;)+ <br>/)) {
             return
         }
@@ -134,7 +166,9 @@ export default function _({user}: Props) {
 
     return (
         <ChatContainer>
-            <MessageList>
+            <MessageList
+                typingIndicator={isTyping ? <TypingIndicator content="Someone is typing" /> : null}
+            >
                 {models.map((model) => {
                     if (model.direction === 'incoming') {
                         if (model.position === 'last' || model.position === 'single') {
@@ -152,9 +186,11 @@ export default function _({user}: Props) {
                 })}
             </MessageList>
             <MessageInput
+                value={message}
                 attachButton={false}
                 placeholder='Aa'
                 onSend={handleSend}
+                onChange={setMessage}
             />
         </ChatContainer>
     )

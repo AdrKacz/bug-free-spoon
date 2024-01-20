@@ -50,6 +50,8 @@ export function ExampleStack({ stack }: StackContext) {
 
       "POST /user": "packages/functions/src/post/user.handler",
 
+      "POST /user/typing": "packages/functions/src/post/user-typing.handler",
+
       "GET /messages/{group}/{from}": {
         function: {
           handler: "packages/functions/src/get/messages.handler",

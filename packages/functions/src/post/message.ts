@@ -8,7 +8,7 @@ import { ComprehendClient, DetectDominantLanguageCommand } from "@aws-sdk/client
 const comprehendClient = new ComprehendClient({ region: "us-east-1" }); // language detection is not available in eu-west-3
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
 const dynamodbClient = new DynamoDBClient({});
 const documentClient = DynamoDBDocumentClient.from(dynamodbClient);
@@ -53,5 +53,23 @@ export const handler = ApiHandler(async (event: any) => {
     if (response.$metadata.httpStatusCode !== 200) {
         throw new Error("Failed to save message");
     }
+
+    // Delete typing indicator
+    await deleteTyping(group, userID);
+
     return { statusCode: 200 };
 })
+
+async function deleteTyping(group: string, userID: string) {
+    const response = await documentClient.send(new DeleteCommand({
+        TableName: Table.Chat.tableName,
+        Key: {
+            PK: `group:${group}`,
+            SK: `typing:${userID}`,
+        },
+    }));
+
+    if (response.$metadata.httpStatusCode !== 200) {
+        throw new Error("Failed to update typing status");
+    }
+}

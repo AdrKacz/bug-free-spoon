@@ -52,7 +52,7 @@ export const handler = ApiHandler(async (event: any) => {
 
     // Process messages
     const messages = []
-    const users: Record<string, GetCommandOutput> = {userID: user}
+    const users: Record<string, GetCommandOutput> = { userID: user }
     for (const item of items) {
         let text;
         if (languages.includes(item.language)) {
@@ -63,30 +63,34 @@ export const handler = ApiHandler(async (event: any) => {
             text = item[`text:${preferredLanguage}`];
         } else {
             // Translate message to user's preferred language
-            const response = await translateClient.send(new TranslateTextCommand({
-                SourceLanguageCode: item.language,
-                TargetLanguageCode: preferredLanguage,
-                Text: item.text,
-            }));
+            try {
+                const response = await translateClient.send(new TranslateTextCommand({
+                    SourceLanguageCode: item.language,
+                    TargetLanguageCode: preferredLanguage,
+                    Text: item.text,
+                }));
 
 
-            // Save translated message
-            await documentClient.send(new UpdateCommand({
-                TableName: Table.Chat.tableName,
-                Key: {
-                    PK: item.PK,
-                    SK: item.SK,
-                },
-                UpdateExpression: "SET #text = :text",
-                ExpressionAttributeNames: {
-                    "#text": `text:${preferredLanguage}`,
-                },
-                ExpressionAttributeValues: {
-                    ":text": response.TranslatedText,
-                },
-            }));
-
-            text = response.TranslatedText
+                // Save translated message
+                await documentClient.send(new UpdateCommand({
+                    TableName: Table.Chat.tableName,
+                    Key: {
+                        PK: item.PK,
+                        SK: item.SK,
+                    },
+                    UpdateExpression: "SET #text = :text",
+                    ExpressionAttributeNames: {
+                        "#text": `text:${preferredLanguage}`,
+                    },
+                    ExpressionAttributeValues: {
+                        ":text": response.TranslatedText,
+                    },
+                }));
+                text = response.TranslatedText
+            } catch (error) {
+                console.error(`Failed to translate message <${item.text}> from ${item.language} to ${preferredLanguage}`);
+                text = item.text;
+            }
         }
 
         if (typeof users[item.user] === 'undefined') {
@@ -116,9 +120,31 @@ export const handler = ApiHandler(async (event: any) => {
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
+    // Check if at least one user is typing
+    const typing = await documentClient.send(new QueryCommand({
+        TableName: Table.Chat.tableName,
+        KeyConditionExpression:
+            "PK = :group AND begins_with(SK, :typing)",
+        ExpressionAttributeValues: {
+            ":group": `group:${group}`,
+            ":typing": "typing:",
+        },
+    }));
+
+    // Check if at least one user is typing in the last 5 seconds
+    const now = (new Date()).getTime();
+    let typingUsers = typing.Items?.filter((item) => {
+        return (now - new Date(item.dt ?? 0).getTime()) < 5000;
+    });
+    // Filter out current user
+    typingUsers = typingUsers?.filter((item) => {
+        return item.SK.replace("typing:", "") !== userID;
+    });
+    const isTyping = typingUsers && typingUsers.length > 0;
+
     return {
         statusCode: 200,
-        body: JSON.stringify(messages),
+        body: JSON.stringify({ messages, isTyping }),
     };
 })
 
@@ -126,10 +152,11 @@ const getQuery = (group: string, from: string, lastEvaluatedKey?: Record<string,
     const query: QueryCommandInput = {
         TableName: Table.Chat.tableName,
         KeyConditionExpression:
-            "PK = :group AND SK >= :messages",
+            "PK = :group AND SK BETWEEN :messages AND :max",
         ExpressionAttributeValues: {
             ":group": `group:${group}`,
             ":messages": `message:${from}`,
+            ":max": 'message:9999', // Year 9999
         },
     }
 
