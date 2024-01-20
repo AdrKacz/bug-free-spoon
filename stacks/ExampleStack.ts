@@ -1,6 +1,25 @@
 import { Api, StaticSite, StackContext, Table, Auth } from "sst/constructs";
 import { RemovalPolicy } from "aws-cdk-lib";
 
+function getLocalAddress() {
+  const interfaces = require('os').networkInterfaces();
+  const results: Record<string, string[]> = {}
+
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]!) {
+      const { address, family, internal } = iface;
+      if ((family === 'IPv4' || family === 4) && !internal) {
+        if (!results[name]) {
+          results[name] = [];
+        }
+        results[name].push(address);
+      }
+    }
+  }
+  console.log('\nNetwork Interfaces:\n', results)
+  return results['en0'][0]
+}
+
 export function ExampleStack({ stack }: StackContext) {
   // Create the table
   const table = new Table(stack, "Chat", {
@@ -50,7 +69,7 @@ export function ExampleStack({ stack }: StackContext) {
     authenticator: {
       handler: "packages/functions/src/auth.handler",
       environment: {
-        SITE_URL: process.env.SITE_URL ?? "http://127.0.0.1:3000/",
+        SITE_URL: process.env.SITE_URL ?? `http://${getLocalAddress()}:3000/`,
       },
     },
   });
