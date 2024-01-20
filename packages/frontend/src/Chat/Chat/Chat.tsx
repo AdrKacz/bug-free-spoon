@@ -1,5 +1,5 @@
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
-import { 
+import {
     ChatContainer,
     MessageList,
     Message,
@@ -53,7 +53,7 @@ export default function _({user}: Props) {
                 return
             }
 
-            const data = await response.json();
+            const data: any[] = await response.json();
             console.log(user.userID, data)
 
             data.forEach((msg: any) => {

@@ -7,8 +7,6 @@ import {
 } from '@mantine/core';
 import { GoogleButton } from './GoogleButton';
 
-import './SignIn.css';
-
 export default function _() {
     const search = window.location.search;
     const params = new URLSearchParams(search);
