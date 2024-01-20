@@ -16,6 +16,7 @@ interface Props {
 }
 
 export default function _({ user, opened, onClose }: Props) {
+    const [languagesOpened, {open: openLanguages, close: closeLanguages}] = useDisclosure(false);
     const [loading, { open: openLoading, close: closeLoading }] = useDisclosure(false);
     const [error, { open: openError, close: closeError }] = useDisclosure(false);
     const small = useMediaQuery(`(max-width: ${useMantineTheme().breakpoints.sm})`)
@@ -102,6 +103,12 @@ export default function _({ user, opened, onClose }: Props) {
                             </ActionIcon>
                         </Group>  
                         <MultiSelect
+                            comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}
+                            maxDropdownHeight="20vh"
+                            dropdownOpened={languagesOpened}
+                            onDropdownOpen={openLanguages}
+                            onDropdownClose={closeLanguages}
+                            onOptionSubmit={closeLanguages}
                             label="What languages do you speak?"
                             placeholder="Pick languages"
                             data={languages}
